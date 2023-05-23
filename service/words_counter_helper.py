@@ -14,3 +14,6 @@ class WordsCounterHelper:
                 self.words_counter_mapping[word] += 1
             else:
                 self.words_counter_mapping[word] = 1
+
+    def clean_words_counter_mapping(self):
+        self.words_counter_mapping.clear()

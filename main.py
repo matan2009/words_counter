@@ -1,4 +1,4 @@
-from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from fastapi import FastAPI
 import uvicorn
 
@@ -19,13 +19,15 @@ async def word_counter(received_input: str) -> ResponseStatus:
     words = received_input.split()
     num_workers = 5
     chunk_size = len(words) // num_workers
+    if not chunk_size:
+        chunk_size = 1
     chunks = [words[i:i+chunk_size] for i in range(0, len(words), chunk_size)]
-
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
-        futures = [executor.submit(words_counter_helper.update_words_counter_mapping, chunk) for chunk in chunks]
-        [future.result() for future in futures]
+        for chunk in chunks:
+            executor.submit(words_counter_helper.update_words_counter_mapping, chunk)
     words_counter_mapping = words_counter_helper.words_counter_mapping
     database_helper.update_database(words_counter_mapping)
+    words_counter_helper.clean_words_counter_mapping()
     return ResponseStatus.Ok
 
 
