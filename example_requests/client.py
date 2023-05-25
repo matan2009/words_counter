@@ -1,7 +1,7 @@
 import asyncio
 import aiohttp
 
-text_input = "hi"
+text_input = "a b c"
 endpoint_url = 'http://localhost:8000/word_counter/'
 
 

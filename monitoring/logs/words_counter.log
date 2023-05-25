@@ -7,3 +7,21 @@
 2023-05-23 22:26:58,806 - INFO - got a request to count the number of appearances for each word in the input - received_input is: how can
 2023-05-23 22:27:17,365 - INFO - got a request to count the number of appearances for each word in the input - received_input is: how can i know a b c d e f g how
 2023-05-23 22:27:46,627 - INFO - got a request to count the number of appearances for each word in the input - received_input is: lalalala
+2023-05-23 22:34:30,084 - INFO - got a request to count the number of appearances for each word in the input - received_input is: hi
+2023-05-23 22:34:48,740 - INFO - got a request to count the number of appearances for each word in the input - received_input is: hi bye
+2023-05-23 22:35:09,130 - INFO - got a request to count the number of appearances for each word in the input - received_input is: a b c
+2023-05-25 11:04:18,834 - INFO - got a request to count the number of appearances for each word in the input - received_input is: a b c
+2023-05-25 11:04:48,853 - INFO - got a request to count the number of appearances for each word in the input - received_input is: a b d
+2023-05-25 11:17:40,979 - INFO - got a request to count the number of appearances for each word in the input - received_input is: la la
+2023-05-25 11:37:07,887 - ERROR - failed to get request body - error is: Unexpected keys have been provided
+2023-05-25 11:37:42,767 - ERROR - failed to get request body - error is: Unexpected keys have been provided
+2023-05-25 11:37:56,486 - ERROR - failed to get request body - error is: Unexpected keys have been provided
+2023-05-25 11:39:56,830 - ERROR - failed to get request body - error is: The request contains unexpected keys
+2023-05-25 11:40:02,883 - ERROR - failed to get request body - error is: The request contains unexpected keys
+2023-05-25 11:40:10,094 - ERROR - failed to get request body - error is: No Content-Type provided.
+2023-05-25 11:40:37,591 - ERROR - failed to get request body - error is: Content-Type not supported.
+2023-05-25 11:41:48,202 - ERROR - failed to get request body - error is: Content-Type not supported.
+2023-05-25 11:42:00,870 - ERROR - failed to get request body - error is: The request contains unexpected keys
+2023-05-25 11:42:08,188 - ERROR - failed to get request body - error is: No Content-Type provided.
+2023-05-25 11:42:15,104 - ERROR - failed to get request body - error is: Content-Type not supported.
+2023-05-25 12:38:29,084 - INFO - got a request to count the number of appearances for each word in the input - received_input is: bbb
