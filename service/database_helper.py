@@ -40,10 +40,16 @@ class DatabaseHelper(DatabaseHelperConfigurations):
         self.conn.commit()
 
     def update_database(self, words_counter_mapping: dict):
-        try:
-            update_query = "INSERT INTO words_counter (word, count) VALUES (%s, %s) ON DUPLICATE KEY UPDATE count = count + VALUES(count)"
-            values = [(word, count) for word, count in words_counter_mapping.items()]
-            self.cursor.executemany(update_query, values)
-            self.conn.commit()
-        except Exception as ex:
-            print (ex)
+        update_query = "INSERT INTO words_counter (word, count) VALUES (%s, %s) ON DUPLICATE KEY UPDATE count = count + VALUES(count)"
+        values = [(word, count) for word, count in words_counter_mapping.items()]
+        self.cursor.executemany(update_query, values)
+        self.conn.commit()
+
+    def get_count_from_db(self, word: str) -> int or None:
+        find_query = "SELECT * FROM words_counter WHERE word = %s"
+        self.cursor.execute(find_query, (word, ))
+        row = self.cursor.fetchone()
+        if row:
+            return row[1]
+        return 0
+
