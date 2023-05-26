@@ -1,28 +1,33 @@
 import mysql.connector
+import configparser
 
-from configurations.database_helper_configurations import DatabaseHelperConfigurations
+from configurations.words_counter_configurations import WordsCounterConfigurations
 
 
-def create_connection_to_db():
+def create_connection_to_db(configurations):
+    db_config = configparser.ConfigParser()
+    db_config.read(configurations["database_helper"]["db_config_filename"])
+    host = configurations["database_helper"]["host"]
+    database = configurations["database_helper"]["database"]
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Nnn010203!",
-        database="words_counter_schema"
+        host=host,
+        user=db_config['Credentials']['DB_USERNAME'],
+        password=db_config['Credentials']['DB_PASSWORD'],
+        database=database
     )
     cursor = conn.cursor()
     return conn, cursor
 
 
-class DatabaseHelper(DatabaseHelperConfigurations):
+class DatabaseHelper(WordsCounterConfigurations):
 
     def __init__(self):
         super().__init__()
-        self.conn, self.cursor = create_connection_to_db()
+        self.conn, self.cursor = create_connection_to_db(self.config)
 
     def verify_db(self):
         # Check if the table exists
-        query = "SHOW TABLES LIKE '{}'".format(self.config["table_name"])
+        query = "SHOW TABLES LIKE '{}'".format(self.config["database_helper"]["table_name"])
         self.cursor.execute(query)
         if not self.cursor.fetchone():
             # create new table
@@ -45,7 +50,7 @@ class DatabaseHelper(DatabaseHelperConfigurations):
         self.cursor.executemany(update_query, values)
         self.conn.commit()
 
-    def get_count_from_db(self, word: str) -> int or None:
+    def get_count_from_db(self, word: str) -> int:
         find_query = "SELECT * FROM words_counter WHERE word = %s"
         self.cursor.execute(find_query, (word, ))
         row = self.cursor.fetchone()

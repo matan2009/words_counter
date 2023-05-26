@@ -14,3 +14,11 @@ def create_logger():
     logger.addHandler(handler)
 
     return logger
+
+
+class Logger:
+
+    def __init__(self):
+        self.logger = create_logger()
+
+

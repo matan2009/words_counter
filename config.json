@@ -1,3 +1,13 @@
 {
-  "table_name": "words_counter"
+  "database_helper":
+  {
+    "db_config_filename": "db_config.ini",
+    "host": "localhost",
+    "database": "words_counter_schema",
+    "table_name": "words_counter"
+  },
+  "words_counter_helper":
+  {
+    "num_of_workers": 10
+  }
 }

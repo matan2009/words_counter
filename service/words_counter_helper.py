@@ -1,5 +1,6 @@
 import os
 import re
+from concurrent.futures.thread import ThreadPoolExecutor
 from multiprocessing import Pool
 import requests
 import csv
@@ -12,8 +13,10 @@ from validators import url
 
 from logging import Logger
 
+from configurations.words_counter_configurations import WordsCounterConfigurations
 
-class WordsCounterHelper:
+
+class WordsCounterHelper(WordsCounterConfigurations):
 
     def __init__(self, logger: Logger):
         super().__init__()
@@ -40,7 +43,7 @@ class WordsCounterHelper:
         return cleaned_words
 
     @staticmethod
-    def read_text_file(file_path, chunk_size):
+    def read_text_file(file_path: str, chunk_size: int) -> str:
         file_content = ""
         # reading text file
         with open(file_path, "r") as file:
@@ -53,7 +56,7 @@ class WordsCounterHelper:
         return file_content
 
     @staticmethod
-    def read_csv_file(file_path, chunk_size):
+    def read_csv_file(file_path: str, chunk_size: int) -> str:
         # reading CSV file
         file_content = ""
         with open(file_path, 'r') as file:
@@ -71,15 +74,15 @@ class WordsCounterHelper:
         return file_content
 
     @staticmethod
-    def concatenate_json_data(json_data):
-        concatenated = ''
+    def concatenate_json_data(json_data: dict) -> str:
+        concatenated = ""
         for key, value in json_data.items():
             concatenated += str(key) + " " + str(value) + " "
         return concatenated
 
     @staticmethod
-    def process_chunk(chunk, converter):
-        text = converter.handle(chunk.decode('utf-8'))
+    def process_chunk(chunk, converter, decode_method):
+        text = converter.handle(chunk.decode(decode_method))
         chunked_words = re.findall(r'\b\w+\b', text)
         return chunked_words
 
@@ -98,6 +101,17 @@ class WordsCounterHelper:
             if chunk:
                 file_content += ' '.join(chunk) + ' '
         return file_content
+
+    def process_words(self, words: list):
+        num_of_workers = self.config["words_counter_helper"]["num_of_workers"]
+        chunk_size = len(words) // num_of_workers
+        if not chunk_size:
+            chunk_size = 1
+        chunks = [words[i:i+chunk_size] for i in range(0, len(words), chunk_size)]
+        with ThreadPoolExecutor(max_workers=num_of_workers) as executor:
+            for chunk in chunks:
+                executor.submit(self.update_words_counter_mapping, chunk)
+        return self.words_counter_mapping
 
     def read_file_content(self, file_path: str) -> str:
         file_content = ""
@@ -130,7 +144,7 @@ class WordsCounterHelper:
     def clean_words_counter_mapping(self):
         self.words_counter_mapping.clear()
 
-    def read_url_content(self, url: str):
+    def read_url_content(self, url: str) -> list:
         try:
             response = requests.get(url, stream=True)
         except Exception as ex:
@@ -144,7 +158,7 @@ class WordsCounterHelper:
             self.logger.error(f"The response has wrong status code. Status code is: {response.status_code}")
             raise HTTPException(status_code=response.status_code, detail=response.reason)
 
-        num_workers = 5
+        num_workers = self.config["words_counter_helper"]["num_of_workers"]
         chunk_size = len(response.content) // num_workers
         if not chunk_size:
             chunk_size = 1
@@ -154,31 +168,33 @@ class WordsCounterHelper:
         converter.ignore_images = True
         with Pool(processes=num_workers) as pool:
             for chunk in response.iter_content(chunk_size=chunk_size):
-                result = pool.starmap(self.process_chunk, [(chunk, converter)])
+                result = pool.starmap(self.process_chunk, [(chunk, converter, response.encoding)])
                 words.extend(result[0])
         return words
 
     def extract_text_from_input(self, received_input: str) -> str or list:
+        # todo: improve validating path to files and urls using regex.
         if os.path.isfile(received_input):
-            # the input is a file
+            # this input is a path to a file
             extra_msg = f"file path is: {received_input}"
             self.logger.info("the received input is a path to a file", extra={"extra": extra_msg})
             file_content = self.read_file_content(received_input)
             return file_content
 
-        try:
-            validation_result = url(received_input)
-            if not validation_result:
-                raise ValueError
-
-            # the input is a URL
+        # check if this input is a valid URL address
+        validation_result = url(received_input)
+        if validation_result:
+            # this input is a valid URL address
             extra_msg = f"url is: {received_input}"
             self.logger.info("the received input is URL", extra={"extra": extra_msg})
             url_content = self.read_url_content(received_input)
             return url_content
 
-        except ValueError:
-            pass
-
         # the input is a simple string
+        extra_msg = f"string is: {received_input}"
+        self.logger.info("the received input is not a path to a file or valid URL address, "
+                         "therefore it will be considered as simple string", extra={"extra": extra_msg})
         return received_input
+
+
+

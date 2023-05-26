@@ -8,7 +8,7 @@ def get_configurations():
     return config
 
 
-class DatabaseHelperConfigurations:
+class WordsCounterConfigurations:
 
     def __init__(self):
         self.config = get_configurations()
