@@ -1,8 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from json import JSONDecodeError
-
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException
 import uvicorn
+from json import JSONDecodeError
 
 from monitoring.logger import create_logger
 from service.database_helper import DatabaseHelper
@@ -51,15 +50,17 @@ async def word_counter(request: Request) -> ResponseStatus or HTTPException:
 
     except ValueError as ex:
         extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
-        logger.critical(f"an error occurred while trying to extract text from input", extra={"extra": extra_msg})
+        logger.critical(f"a value error occurred while trying to extract text from input", extra={"extra": extra_msg})
         raise HTTPException(status_code=400, detail=str(ex))
 
     except HTTPException as ex:
         extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
-        logger.critical(f"an error occurred while trying to extract text from input", extra={"extra": extra_msg})
+        logger.critical(f"an http exception occurred while trying to extract text from input", extra={"extra": extra_msg})
         raise ex
 
     except Exception as ex:
+        extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
+        logger.critical(f"an unexpected error occurred while trying to extract text from input", extra={"extra": extra_msg})
         raise HTTPException(status_code=500, detail=str(ex))
 
     words = words_counter_helper.prepare_words_for_counting(retrieved_data)
