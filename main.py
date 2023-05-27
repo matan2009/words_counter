@@ -1,3 +1,5 @@
+import re
+
 from fastapi import FastAPI, Request, HTTPException
 import uvicorn
 from json import JSONDecodeError
@@ -30,7 +32,7 @@ class WordsCounter:
         self.database_helper = DatabaseHelper()
 
     @staticmethod
-    async def validate_request(request: Request) -> (ResponseStatus, str):
+    async def validate_word_counter_request(request: Request) -> (ResponseStatus, str):
         content_type = request.headers.get('Content-Type')
         if not content_type:
             return ResponseStatus.Error, 'No Content-Type provided.'
@@ -50,19 +52,27 @@ class WordsCounter:
         else:
             return ResponseStatus.Error, 'Content-Type not supported.'
 
-    async def set_text_input(self, request: Request) -> ResponseStatus:
-        validation_status, received_input = await self.validate_request(request)
-        if validation_status == ResponseStatus.Error:
-            extra_msg = f"error is: {received_input}"
-            self.logger.error("the request validation was failed", extra={"extra": extra_msg})
-            raise HTTPException(status_code=400, detail=received_input)
+    @staticmethod
+    def validate_word_statistics_request(word: str) -> (ResponseStatus, str or None):
+        # verify if word contains letters
+        if not bool(re.search(r'[a-zA-Z]', word)):
+            return ResponseStatus.Error, "A requested word must contains at least one letter"
+        return ResponseStatus.Ok, None
 
-        extra_msg = f"received_input is: {received_input}"
-        self.logger.info(f"got a request to count the number of appearances for each word in the input",
+    async def set_text_input(self, request: Request) -> ResponseStatus:
+        extra_msg = "endpoint name is: word counter"
+        self.logger.info("got a request to count the number of appearances for each word in the input",
                          extra={"extra": extra_msg})
+        validation_status, result = await self.validate_word_counter_request(request)
+        if validation_status == ResponseStatus.Error:
+            extra_msg = f"error is: {result}"
+            self.logger.error("the word counter validation was was failed", extra={"extra": extra_msg})
+            raise HTTPException(status_code=400, detail=result)
+
         try:
-            retrieved_data = self.words_counter_helper.extract_text_from_input(received_input)
+            retrieved_data = self.words_counter_helper.extract_text_from_input(result)
             if not retrieved_data:
+                extra_msg = f"result is: {result}"
                 self.logger.critical(f"could not extract text from input", extra={"extra": extra_msg})
                 raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -90,14 +100,19 @@ class WordsCounter:
         return status
 
     def get_word_statistics(self, word: str):
-        # todo: cleanup words
-        # todo: check why still there are results after deleting all rows on db
+        validation_status, detail = self.validate_word_statistics_request(word)
+        if validation_status == ResponseStatus.Error:
+            extra_msg = f"error is: {detail}"
+            self.logger.error("the word statistics validation was failed", extra={"extra": extra_msg})
+            raise HTTPException(status_code=400, detail=detail)
+
         extra_msg = f"word is: {word}"
         self.logger.info("got a request to get word statistics", extra={"extra": extra_msg})
+        cleaned_word = self.words_counter_helper.prepare_word_for_statistics(word)
         try:
-            count = self.database_helper.get_count_from_db(word)
+            count = self.database_helper.get_count_from_db(cleaned_word)
         except Exception as ex:
-            extra_msg = f"word is: {word}, the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
+            extra_msg = f"word is: {cleaned_word}, the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
             self.logger.critical(f"an error occurred while trying to get word count from database",
                                  extra={"extra": extra_msg})
             raise HTTPException(status_code=500)
