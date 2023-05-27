@@ -3,7 +3,7 @@
   {
     "db_config_filename": "db_config.ini",
     "host": "localhost",
-    "database": "words_counter_schema",
+    "database_name": "words_counter_schema",
     "table_name": "words_counter"
   },
   "words_counter_helper":

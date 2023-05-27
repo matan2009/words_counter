@@ -1,13 +1,13 @@
+import docx2txt
+import html2text
+from fastapi import HTTPException
+import requests
+
 import os
 import re
 from concurrent.futures.thread import ThreadPoolExecutor
 from multiprocessing import Pool
-import requests
 import csv
-import docx2txt
-import html2text
-from fastapi import HTTPException
-from requests import HTTPError
 
 from logging import Logger
 from configurations.words_counter_configurations import WordsCounterConfigurations
@@ -201,7 +201,7 @@ class WordsCounterHelper(WordsCounterConfigurations):
 
         try:
             response.raise_for_status()
-        except HTTPError:
+        except requests.HTTPError:
             self.logger.error(f"The response has wrong status code. Status code is: {response.status_code}")
             raise HTTPException(status_code=response.status_code, detail=response.reason)
 
@@ -234,7 +234,9 @@ class WordsCounterHelper(WordsCounterConfigurations):
                 self.logger.info("the received input is a valid path to a file", extra={"extra": extra_msg})
                 file_content = self.read_file_content(input_string)
                 return file_content
-            raise HTTPException(status_code=400, detail="The request contains a path to a file that does not exist")
+            extra_msg = "The request contains a path to a file that does not exist"
+            self.logger.warning("file does not exist")
+            raise HTTPException(status_code=400, detail=extra_msg)
 
         # checking if input_string has URL address pattern
         url_match = re.match(self.url_pattern, input_string)
