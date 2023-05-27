@@ -1,8 +1,8 @@
-import re
-
 from fastapi import FastAPI, Request, HTTPException
 import uvicorn
+
 from json import JSONDecodeError
+import re
 
 from monitoring.logger import Logger
 from service.database_helper import DatabaseHelper
@@ -122,5 +122,8 @@ class WordsCounter:
 if __name__ == '__main__':
     logger = Logger()
     words_counter = WordsCounter(logger)
-    words_counter.database_helper.verify_db()
+    server_conn, host, user_name, password = words_counter.database_helper.create_connection_to_mysql_server()
+    words_counter.database_helper.verify_database(server_conn)
+    db_conn = words_counter.database_helper.create_connection_to_database(host, user_name, password)
+    words_counter.database_helper.verify_table(db_conn)
     uvicorn.run(app, host="0.0.0.0", port=8000)
