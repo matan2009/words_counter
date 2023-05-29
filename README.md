@@ -29,8 +29,9 @@ The Word Counter System offers the following features:
 5. Send requests as instructed on API Documentation file.
 
 ## Fututre Work
-1. To add Caching mechanism.
-2. To add GUI.
-3. To add more capabilities (eg: delete words, clean spesific calls etc).
-4. Support additional file types.
-5. Improve tests coverage.
+1. To add authorization mechanism (eg: api calls will be accepted only with suitable API key.
+2. To add Caching mechanism.
+3. To add GUI.
+4. To add more system scapabilities (eg: delete words, clean spesific calls etc).
+5. Support additional file types.
+6. Improve tests coverage.
