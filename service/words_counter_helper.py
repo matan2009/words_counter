@@ -2,8 +2,8 @@ from docx import Document
 import html2text
 from fastapi import HTTPException
 import requests
-from concurrent.futures.thread import ThreadPoolExecutor
 
+from concurrent.futures.thread import ThreadPoolExecutor
 import os
 import re
 import csv

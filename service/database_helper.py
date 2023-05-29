@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import CMySQLConnection
+
 import configparser
 
 from configurations.words_counter_configurations import WordsCounterConfigurations
