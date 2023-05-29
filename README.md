@@ -1,4 +1,4 @@
-# words_counter
+# words Counter System
 
 This API provides a simple and efficient way to count the number of times a word appeared so far (in all previous calls).
 
@@ -20,7 +20,7 @@ The Word Counter System offers the following features:
 2. Words Statistics feature: The system recevies a word and returns the number of times the word appeared so far (in all previous calls).
 
 ## Getting Started
-1. Clone words_counter project into your computer or server.
+1. Clone Words Counter System project into your computer or server.
 2. Make sure all dependencies are installed (requierments.txt file is attached to this repository).
 3. Edit db_config.ini file as followed:
   3.1 In line 2 edit DB_USERNAME field with your presonal MySQL username.
