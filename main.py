@@ -70,33 +70,28 @@ class WordsCounter:
             raise HTTPException(status_code=400, detail=result)
 
         try:
-            retrieved_data = self.words_counter_helper.extract_text_from_input(result)
-            if not retrieved_data:
-                extra_msg = f"result is: {result}"
-                self.logger.critical(f"could not extract text from input", extra={"extra": extra_msg})
-                raise HTTPException(status_code=400, detail="Bad Request")
+            self.words_counter_helper.extract_text_from_input(result)
+        except ValueError as ex:
+            extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
+            self.logger.critical(f"a value error occurred while trying to extract text from input", extra={"extra": extra_msg})
+            raise HTTPException(status_code=400, detail=extra_msg)
 
         except HTTPException as ex:
             extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
-            self.logger.critical(f"an http exception occurred while trying to extract text from input", extra={"extra": extra_msg})
+            self.logger.critical(f"an http exception occurred while trying to extract text from input",
+                                 extra={"extra": extra_msg})
             raise ex
 
         except Exception as ex:
             extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
             self.logger.critical(f"an unexpected error occurred while trying to extract text from input", extra={"extra": extra_msg})
-            raise HTTPException(status_code=500, detail=str(ex))
+            raise HTTPException(status_code=500, detail=extra_msg)
 
-        words = self.words_counter_helper.prepare_words_for_counting(retrieved_data)
-        words_counter_mapping = self.words_counter_helper.process_words(words)
-        try:
-            self.database_helper.update_database(words_counter_mapping)
-            status = ResponseStatus.Ok
-        except Exception as ex:
-            extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
-            self.logger.critical(f"an error occurred while trying to update database", extra={"extra": extra_msg})
-            status = ResponseStatus.Error
-        finally:
-            self.words_counter_helper.clean_words_counter_mapping()
+        status = self.words_counter_helper.update_database()
+        if status == ResponseStatus.Error:
+            extra_msg = "failed to record any words in db"
+            self.logger.error("the word counter validation was was failed", extra={"extra": extra_msg})
+            raise HTTPException(status_code=500, detail=extra_msg)
         return status
 
     def get_word_statistics(self, word: str):
@@ -110,20 +105,17 @@ class WordsCounter:
         self.logger.info("got a request to get word statistics", extra={"extra": extra_msg})
         cleaned_word = self.words_counter_helper.prepare_word_for_statistics(word)
         try:
-            count = self.database_helper.get_count_from_db(cleaned_word)
+            word_count = self.words_counter_helper.get_word_count(cleaned_word)
         except Exception as ex:
             extra_msg = f"word is: {cleaned_word}, the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
             self.logger.critical(f"an error occurred while trying to get word count from database",
                                  extra={"extra": extra_msg})
-            raise HTTPException(status_code=500)
-        return count
+            raise HTTPException(status_code=500, detail=extra_msg)
+        return word_count
 
 
 if __name__ == '__main__':
     logger = Logger()
     words_counter = WordsCounter(logger)
-    server_conn, host, user_name, password = words_counter.database_helper.create_connection_to_mysql_server()
-    words_counter.database_helper.verify_database(server_conn)
-    db_conn = words_counter.database_helper.create_connection_to_database(host, user_name, password)
-    words_counter.database_helper.verify_table(db_conn)
+    words_counter.words_counter_helper.setup_system()
     uvicorn.run(app, host="0.0.0.0", port=8000)

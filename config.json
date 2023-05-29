@@ -9,6 +9,7 @@
   "words_counter_helper":
   {
     "num_of_workers": 10,
+    "num_of_chunks": 10,
     "files_chunk_size" : 10485760
   }
 }
