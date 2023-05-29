@@ -1,5 +1,5 @@
 import mysql.connector
-
+from mysql.connector import CMySQLConnection
 import configparser
 
 from configurations.words_counter_configurations import WordsCounterConfigurations
@@ -12,7 +12,7 @@ class DatabaseHelper(WordsCounterConfigurations):
         self.conn = None
         self.cursor = None
 
-    def create_connection_to_mysql_server(self):
+    def create_connection_to_mysql_server(self) -> (CMySQLConnection, str, str, str):
         db_config = configparser.ConfigParser()
         db_config.read(self.config["database_helper"]["db_config_filename"])
         host = self.config["database_helper"]["host"]
@@ -26,7 +26,7 @@ class DatabaseHelper(WordsCounterConfigurations):
         )
         return conn, host, user_name, password
 
-    def verify_database(self, server_conn):
+    def verify_database(self, server_conn: CMySQLConnection):
         # Check if the database exists
         cursor = server_conn.cursor()
         database_name = self.config['database_helper']['database_name']
@@ -41,7 +41,7 @@ class DatabaseHelper(WordsCounterConfigurations):
         create_schema_query = f"CREATE DATABASE {database_name}"
         cursor.execute(create_schema_query)
 
-    def create_connection_to_database(self, host, user_name, password):
+    def create_connection_to_database(self, host: str, user_name: str, password: str) -> CMySQLConnection:
         database_name = self.config["database_helper"]["database_name"]
         conn = mysql.connector.connect(
             host=host,
@@ -51,7 +51,7 @@ class DatabaseHelper(WordsCounterConfigurations):
         )
         return conn
 
-    def verify_table(self, db_conn):
+    def verify_table(self, db_conn: CMySQLConnection):
         # Check if the table exists
         cursor = db_conn.cursor()
         table_name = self.config['database_helper']['table_name']

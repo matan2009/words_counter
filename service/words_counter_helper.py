@@ -1,6 +1,4 @@
-import io
 from docx import Document
-import docx2txt
 import html2text
 from fastapi import HTTPException
 import requests
@@ -32,7 +30,7 @@ class WordsCounterHelper(WordsCounterConfigurations):
         self.url_pattern = r'^(https?|ftp)://[^\s/$.?#].[^\s]*$'
 
     @staticmethod
-    def prepare_word_for_statistics(word) -> str:
+    def prepare_word_for_statistics(word: str) -> str:
         # cleaning up all characters from word except letters dashes and commas
         return re.sub(r'[^a-zA-Z,-]', '', word)
 
@@ -41,8 +39,6 @@ class WordsCounterHelper(WordsCounterConfigurations):
         self.database_helper.verify_database(server_conn)
         db_conn = self.database_helper.create_connection_to_database(host, user_name, password)
         self.database_helper.verify_table(db_conn)
-
-        return None
 
     def extract_text_from_input(self, input_string: str):
         # checking if input_string has file path pattern
@@ -72,9 +68,8 @@ class WordsCounterHelper(WordsCounterConfigurations):
         extra_msg = f"string is: {input_string}"
         self.logger.info("the received input is a simple string", extra={"extra": extra_msg})
         self.update_words_counter_mapping(input_string.split())
-        return None
 
-    def process_text_file(self, file, chunk, chunk_size):
+    def process_text_file(self, file, chunk: (int, int), chunk_size: int):
         file.seek(chunk[0])
         chunk_size_iteration = chunk_size // 100  # each worker will process 100KB of data on each iteration
         while file.tell() < chunk[1]:
@@ -83,7 +78,7 @@ class WordsCounterHelper(WordsCounterConfigurations):
                 break
             self.update_words_counter_mapping(chunk_content.split())
 
-    def read_text_from_file(self, file, chunk_size):
+    def read_text_from_file(self, file, chunk_size: int):
         file_size = file.seek(0, 2)
         num_of_workers = file_size // chunk_size
         if not num_of_workers:
@@ -99,13 +94,13 @@ class WordsCounterHelper(WordsCounterConfigurations):
                     self.logger.error("an error occurred while trying to extract text from a text file",
                                       extra={"extra": extra_msg})
 
-    def process_csv_file(self, line):
+    def process_csv_file(self, line: str):
         line_words = []
         for phrase in line:
             line_words.extend(phrase.split())
         self.update_words_counter_mapping(line_words)
 
-    def read_csv_file(self, file, num_of_workers):
+    def read_csv_file(self, file, num_of_workers: int):
         # reading CSV file
         reader = csv.reader(file)
         with ThreadPoolExecutor(max_workers=num_of_workers) as executor:
@@ -117,7 +112,7 @@ class WordsCounterHelper(WordsCounterConfigurations):
                     self.logger.error("an error occurred while trying to process csv file",
                                       extra={"extra": extra_msg})
 
-    def read_docx_file(self, file_path, num_of_workers):
+    def read_docx_file(self, file_path: str, num_of_workers: int):
         # reading docx file
         document = Document(file_path)
         with ThreadPoolExecutor(max_workers=num_of_workers) as executor:
@@ -152,7 +147,9 @@ class WordsCounterHelper(WordsCounterConfigurations):
         elif file_extension == self.docx_extension:
             self.read_docx_file(file_path, num_of_workers)
 
-    def read_url_content(self, chunk, converter, decode_method):
+        file.close()
+
+    def read_url_content(self, chunk: bytes, converter, decode_method: str):
         text = converter.handle(chunk.decode(decode_method))
         # extracting words from text without html tags
         chunk_content = re.findall(r'\b\w+\b', text)
@@ -189,8 +186,6 @@ class WordsCounterHelper(WordsCounterConfigurations):
                     extra_msg = f"the exception is: {str(ex)}, the exception_type is: {type(ex).__name__}"
                     self.logger.error("an error occurred while trying to read url content", extra={"extra": extra_msg})
 
-        return None
-
     def update_words_counter_mapping(self, words: list):
         for word in words:
             # verify if word contains letters
@@ -203,8 +198,6 @@ class WordsCounterHelper(WordsCounterConfigurations):
                 self.words_counter_mapping[word] += 1
             else:
                 self.words_counter_mapping[word] = 1
-
-        return None
 
     def update_database(self) -> ResponseStatus:
         items = list(self.words_counter_mapping.items())
