@@ -1,4 +1,4 @@
-# words Counter System
+# Words Counter System
 
 This API provides a simple and efficient way to count the number of times a word appeared so far (in all previous calls).
 
