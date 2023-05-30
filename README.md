@@ -33,3 +33,4 @@ The Word Counter System offers the following features:
 4. To add more system scapabilities (eg: delete words, clean spesific calls etc).
 5. Support additional file types.
 6. Improve tests coverage.
+7. To add retry mechanism (for spesific URL responses (server side errors)).
