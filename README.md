@@ -22,9 +22,7 @@ The Word Counter System offers the following features:
 ## Getting Started
 1. Clone Words Counter System project into your computer or server.
 2. Make sure all dependencies are installed (requierments.txt file is attached to this repository).
-3. Edit db_config.ini file as followed:
-  3.1 In line 2 edit DB_USERNAME field with your presonal MySQL username.
-  3.2 In line 3 edit DB_PASSWORD field with your presonal MySQL password.
+3. Edit db_config.ini file as followed: In line 2 edit DB_USERNAME field with your presonal MySQL username. In line 3 edit DB_PASSWORD field with your presonal MySQL password.
 4. Run main.py file.
 5. Send requests as instructed on API Documentation file.
 
